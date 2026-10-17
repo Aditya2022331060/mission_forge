@@ -1,5 +1,25 @@
+import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect, useRef } from "react";
+
+// Prevent R3F pierced-prop crash on Vite/TanStack dev attributes like `data-tsd-source`
+const ensureDataProp = (proto: any) => {
+  if (proto && !Object.prototype.hasOwnProperty.call(proto, "data")) {
+    Object.defineProperty(proto, "data", {
+      get() {
+        if (!this._data) this._data = {};
+        return this._data;
+      },
+      set(val) {
+        this._data = val;
+      },
+      configurable: true,
+      enumerable: false,
+    });
+  }
+};
+ensureDataProp(THREE.Object3D.prototype);
+ensureDataProp(THREE.Material.prototype);
 import i18n from "../../lib/i18n";
 import { LearnLab } from "./LearnLab";
 import { Ayesha } from "./Ayesha";

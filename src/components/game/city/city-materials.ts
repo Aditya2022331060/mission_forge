@@ -1,5 +1,24 @@
 import * as THREE from "three";
 
+// Ensure Three.js prototypes gracefully handle pierced JSX properties with multiple hyphens (like data-tsd-source from Vite/Tanstack)
+const ensureDataProp = (proto: any) => {
+  if (proto && !Object.prototype.hasOwnProperty.call(proto, "data")) {
+    Object.defineProperty(proto, "data", {
+      get() {
+        if (!this._data) this._data = {};
+        return this._data;
+      },
+      set(val) {
+        this._data = val;
+      },
+      configurable: true,
+      enumerable: false,
+    });
+  }
+};
+ensureDataProp(THREE.Object3D.prototype);
+ensureDataProp(THREE.Material.prototype);
+
 /**
  * Shared architectural PBR materials for Forge City
  * Inspired by GitCity's material palette, tailored for a crisp aerospace research campus.

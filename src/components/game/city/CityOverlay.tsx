@@ -1,5 +1,5 @@
 import { useMissionStore } from "../../../stores/mission-store";
-import { FORGE_CITY_DISTRICTS } from "./ForgeCity";
+import { FORGE_CITY_DISTRICTS } from "./city-data";
 import { Button } from "../../ui/button";
 import { Compass, ChevronRight, Rocket, Building2 } from "lucide-react";
 
