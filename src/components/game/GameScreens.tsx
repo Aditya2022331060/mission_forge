@@ -49,7 +49,17 @@ function Start() {
   return <Frame phase="menu"><main className="gm-home"><div className="gm-home-copy">
     <p className="gm-kicker">{t("exp.eyebrow")}</p><h1>{t("exp.title").split("\n").map((line, i) => <span key={line}>{i > 0 && <br />}{line}</span>)}</h1>
     <p className="mf-home-intro">{t("exp.intro")}</p>
-    <div className="gm-actions"><Button size="lg" onClick={() => s.newRun("missions")}><Rocket />{t("ui.flow.start")}<ArrowRight /></Button><Button variant="secondary" onClick={() => s.set({ learn: "index" })}><BookOpen />{t("ui.nav.learn")}</Button></div>
+    <div className="gm-actions">
+      <Button size="lg" onClick={() => s.go("city")} className="bg-cyan-500 font-bold text-slate-950 hover:bg-cyan-400">
+        <Rocket /> Explore Forge City (3D Hub) <ArrowRight />
+      </Button>
+      <Button size="lg" variant="secondary" onClick={() => s.newRun("missions")}>
+        Direct Flight Plan <ArrowRight />
+      </Button>
+      <Button variant="secondary" onClick={() => s.set({ learn: "index" })}>
+        <BookOpen /> {t("ui.nav.learn")}
+      </Button>
+    </div>
     {s.attempts > 0 && <Button className="mf-resume" variant="ghost" onClick={() => s.go("build")}>{t("ui.home.continue")}<ArrowRight /></Button>}
   </div><div className="mf-home-coordinate"><span>{t("exp.destination")}</span><strong>{t("ui.home.title2")}</strong><small>{t("ui.home.tagline")}</small></div>
   <footer className="mf-home-footer"><span>{t("exp.earthCredit")}</span><span>{t("exp.independent")}</span></footer></main></Frame>;
@@ -60,7 +70,7 @@ function DestinationCaption({ mission }: { mission: MissionId }) {
 }
 function Planet() {
   const s = useMissionStore(); const { t } = useTranslation();
-  return <Layout phase="missions" title={t("ui.flow.planet")} info={t("ui.game.chooseHint")} back="menu" next="brief" nextLabel={t("ui.flow.mission")} media={<DestinationCaption mission={s.mission} />}>
+  return <Layout phase="missions" title={t("ui.flow.planet")} info={t("ui.game.chooseHint")} back="city" next="brief" nextLabel={t("ui.flow.mission")} media={<DestinationCaption mission={s.mission} />}>
     <div className="gm-world-list">{ids.map((id, i) => <Button key={id} variant="ghost" aria-pressed={s.mission === id} className={`gm-choice ${s.mission === id ? "on" : ""}`} onClick={() => s.set({ mission: id })}><span className="mf-world-index">{String(i + 1).padStart(2, "0")}</span><span>{t(`exp.destinations.${id}.name`)}{id === "Mars" && <em className="mf-recommended">{t("exp.recommended")}</em>}<small>{t(`exp.destinations.${id}.note`)}</small></span>{s.mission === id && <Check />}</Button>)}</div>
   </Layout>;
 }
