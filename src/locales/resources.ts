@@ -229,6 +229,7 @@ const cityLearning = {
   },
 };
 const launchVehicle = {
+  preview: { title: "Interactive {{vehicle}} 3D preview", loading: "Loading 3D model…", ready: "3D model ready", error: "3D model unavailable — showing the vehicle image.", retry: "Retry 3D preview", hint: "Drag to rotate · Scroll or pinch to zoom · Use the controls to reset the view" },
   title: "Launch vehicle", assumptions: "Model assumptions", choose: "Choose launch vehicle", selected: "Selected", source: "NASA reference", imageFallback: "Vehicle image unavailable",
   descriptions: {
     "saturn-v": "Apollo-era three-stage launcher: five F-1 engines on its first stage, followed by S-II and S-IVB stages.",

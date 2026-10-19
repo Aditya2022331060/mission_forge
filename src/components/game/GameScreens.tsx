@@ -1,5 +1,6 @@
+import { LaunchVehiclePreviewPanel, useLaunchPreviewMode } from "./LaunchVehiclePreview";
 import { LaunchVehicleSelector, LaunchCapabilitySummary } from "./LaunchVehicleSelector";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, BookOpen, Check, Compass, Menu, Rocket, Settings2, UserRound, X } from "lucide-react";
 import { Button } from "../ui/button";
@@ -76,8 +77,8 @@ function Planet() {
   </Layout>;
 }
 function Vehicle() {
-  const s = useMissionStore(); const { t } = useTranslation();
-  return <Layout phase="vehicle" title={t("launchVehicle.title")} back="missions" next="brief" media={<DestinationCaption mission={s.mission} />}><LaunchVehicleSelector /></Layout>;
+  const { t } = useTranslation();
+  return <Layout phase="vehicle" title={t("launchVehicle.title")} back="missions" next="brief" media={<LaunchVehiclePreviewPanel />}><LaunchVehicleSelector /></Layout>;
 }
 function Objective() {
   const s = useMissionStore(); const { t } = useTranslation(); const b = BODIES[s.mission];
@@ -133,9 +134,11 @@ function Craft() {
 type Category = "vehicle" | "engine" | "fuel" | "power" | "comms" | "science";
 function Hangar() {
   const s = useMissionStore(); const { t } = useTranslation(); const a = analyze(designOf(s)); const [tab, setTab] = useState<Category>("engine"); const categories: Category[] = ["vehicle", "engine", "fuel", "power", "comms", "science"];
+  const { setHangar } = useLaunchPreviewMode();
+  useEffect(() => { setHangar(tab === "vehicle"); return () => setHangar(false); }, [tab, setHangar]);
   const craftInfo = getMissionModel(s.mission);
   const step = (label: string, value: number, min: number, max: number, change: (v: number) => void) => <div className="gm-step"><span>{label}</span><Button variant="secondary" size="icon" disabled={value <= min} aria-label={t("exp.remove", { label })} onClick={() => change(value - 1)}>−</Button><b>{value}</b><Button variant="secondary" size="icon" disabled={value >= max} aria-label={t("exp.add", { label })} onClick={() => change(value + 1)}>+</Button></div>;
-  return <Frame phase="build"><main className="gm-hangar"><div className="gm-hangar-head"><p className="gm-kicker">{t("ui.flow.build")}</p><h1>{t("ui.game.assemble")}</h1><span>{s.mission} · {ENGINES[s.engine].name}</span></div><aside className="gm-hangar-categories">{categories.map(id => <Button key={id} variant="ghost" className={tab === id ? "on" : ""} onClick={() => setTab(id)}>{id === "vehicle" ? t("launchVehicle.title") : t(`ui.game.${id}`)} <ArrowRight /></Button>)}</aside><div className="gm-craft-view"><span className="gm-craft-tag">🛰️ {craftInfo.name} · {craftInfo.agency}</span><div className="mf-craft-tools"><span>{t("ui.game.dragCraft")}</span><SceneControls /></div></div><aside className="gm-hangar-controls"><h2>{tab === "vehicle" ? t("launchVehicle.title") : t(`ui.game.${tab}`)}</h2><div className="gm-control-scroll">
+  return <Frame phase="build"><main className="gm-hangar"><div className="gm-hangar-head"><p className="gm-kicker">{t("ui.flow.build")}</p><h1>{t("ui.game.assemble")}</h1><span>{s.mission} · {ENGINES[s.engine].name}</span></div><aside className="gm-hangar-categories">{categories.map(id => <Button key={id} variant="ghost" className={tab === id ? "on" : ""} onClick={() => setTab(id)}>{id === "vehicle" ? t("launchVehicle.title") : t(`ui.game.${id}`)} <ArrowRight /></Button>)}</aside><div className="gm-craft-view">{tab === "vehicle" ? <LaunchVehiclePreviewPanel /> : <><span className="gm-craft-tag">🛰️ {craftInfo.name} · {craftInfo.agency}</span><div className="mf-craft-tools"><span>{t("ui.game.dragCraft")}</span><SceneControls /></div></>}</div><aside className="gm-hangar-controls"><h2>{tab === "vehicle" ? t("launchVehicle.title") : t(`ui.game.${tab}`)}</h2><div className="gm-control-scroll">
     {tab === "vehicle" && <LaunchVehicleSelector />}
     {tab === "engine" && <>{(Object.keys(ENGINES) as EngineId[]).map(id => <Button key={id} variant="ghost" aria-pressed={s.engine === id} className={`gm-part ${s.engine === id ? "on" : ""}`} onClick={() => s.set({ engine: id })}><span><b>{ENGINES[id].name}</b><small>{ENGINES[id].isp} s Isp · {ENGINES[id].thrust}</small></span>{s.engine === id && <Check />}</Button>)}{step(t("ui.game.engineCount"), s.engines, 1, 3, v => s.set({ engines: v }))}</>}
     {tab === "fuel" && <>{step(t("ui.game.tanks"), s.tanks, 1, 4, v => s.set({ tanks: v }))}<label className="gm-range">{t("ui.game.fuelLoad")} <b>{s.fuel}%</b><input type="range" min="20" max="100" value={s.fuel} onChange={e => s.set({ fuel: +e.target.value })}/></label></>}

@@ -1,3 +1,4 @@
+import { LaunchPreviewProvider, LaunchVehiclePreviewScene, useLaunchPreviewMode } from "./LaunchVehiclePreview";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect, useRef } from "react";
@@ -34,6 +35,11 @@ import { CityLearningActivity } from "./city/CityLearningActivity";
 import { CityOverlay } from "./city/CityOverlay";
 
 export function Game() {
+  return <LaunchPreviewProvider><GameContent /></LaunchPreviewProvider>;
+}
+
+function GameContent() {
+  const { hangar } = useLaunchPreviewMode();
   const phase = useMissionStore((s) => s.phase),
     cam = useMissionStore((s) => s.cam),
     quality = useMissionStore((s) => s.quality);
@@ -49,7 +55,9 @@ export function Game() {
   // Determine which 3D scene to render in WebGL
   const learning = phase === "classroom" || phase === "training" || phase === "research";
   const sceneKey =
-    phase === "city" || learning
+    phase === "vehicle" || (phase === "build" && hangar)
+      ? "vehicle-preview"
+      : phase === "city" || learning
       ? "city"
       : ["craft", "build", "check"].includes(phase)
       ? "hangar"
@@ -64,7 +72,9 @@ export function Game() {
       : "universe";
 
   const scene =
-    sceneKey === "city" ? (
+    sceneKey === "vehicle-preview" ? (
+      <LaunchVehiclePreviewScene />
+    ) : sceneKey === "city" ? (
       <ForgeCity />
     ) : sceneKey === "hangar" ? (
       <BuildScene />
@@ -111,6 +121,8 @@ export function Game() {
         >
           {/* 3D WebGL Canvas */}
           <Canvas
+            // Preview framing uses the logical landscape stage before its portrait rotation.
+            resize={{ offsetSize: sceneKey === "vehicle-preview" }}
             dpr={quality === "high" ? [1, 1.5] : 1}
             camera={
               phase === "city"
