@@ -1,3 +1,5 @@
+import type { Phase } from "../../../stores/mission-store";
+
 export interface ZoneLocation {
   id: string;
   name: string;
@@ -5,7 +7,7 @@ export interface ZoneLocation {
   pos: [number, number, number];
   radius: number;
   color: string;
-  targetPhase?: string;
+  targetPhase?: Phase;
   icon: string;
 }
 
@@ -42,6 +44,7 @@ export const FORGE_CITY_DISTRICTS: ZoneLocation[] = [
   },
   {
     id: "research-lab",
+    targetPhase: "research",
     name: "Aerospace Research Laboratories",
     sub: "Lunar Regolith Analysis & Materials Testing",
     pos: [26, 0, 14],

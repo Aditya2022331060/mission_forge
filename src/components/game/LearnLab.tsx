@@ -26,7 +26,7 @@ function Demo({ id }: { id: CId }) {
   return <svg viewBox="0 0 200 120" className="mf-demo" aria-hidden><circle cx="30" cy="60" r="12" fill="#ffd27a" />{[1, 2, 3].map((k) => <circle key={k} className="mf-demo-wave" style={{ animationDelay: `${k * 0.6}s` }} cx="30" cy="60" r="14" fill="none" stroke="#ffd27a" />)}<rect x="150" y="50" width="22" height="20" fill="#2c5aa0" /></svg>;
 }
 
-function Interactive({ id }: { id: CId }) {
+export function LessonInteractive({ id }: { id: CId }) {
   const { t } = useTranslation();
   const [isp, setIsp] = useState(ENGINES.chemical.isp), [ratio, setRatio] = useState(3), [au, setAu] = useState(1.524), [body, setBody] = useState<BodyId>("Jupiter");
   if (id === "rocket") {
@@ -48,13 +48,13 @@ function Interactive({ id }: { id: CId }) {
     <p className="mf-result">{t("concepts.light.delay")}: <b>{delayMin.toFixed(1)} min</b> <small>(closest approach, {b.au} AU from Sun)</small></p></div>;
 }
 
-function Quiz({ id }: { id: CId }) {
+export function LessonQuiz({ id, onCorrect }: { id: CId; onCorrect?: () => void }) {
   const { t } = useTranslation();
   const opts = t(`concepts.${id}.a`, { returnObjects: true }) as string[], correct = t(`concepts.${id}.correct`, { returnObjects: true }) as unknown as number;
   const [pick, setPick] = useState<number | null>(null), [checked, setChecked] = useState(false);
-  return <div className="mf-quiz"><p className="mf-q">{t(`concepts.${id}.q`)}</p>{opts.map((o, i) => <button key={o} className={pick === i ? "on" : ""} onClick={() => { setPick(i); setChecked(false); }}>{o}</button>)}
-    <button className="mf-primary" disabled={pick === null} onClick={() => setChecked(true)}>{t("ui.learn.check")}</button>
-    {checked && <p className={pick === correct ? "mf-ok" : "mf-bad"}>{pick === correct ? `${t("ui.learn.correct")} ${t(`concepts.${id}.explain`)}` : t("ui.learn.wrong")}</p>}</div>;
+  return <div className="mf-quiz"><p className="mf-q">{t(`concepts.${id}.q`)}</p>{opts.map((o, i) => <button key={o} aria-pressed={pick === i} className={pick === i ? "on" : ""} onClick={() => { setPick(i); setChecked(false); }}>{o}</button>)}
+    <button className="mf-primary" disabled={pick === null} onClick={() => { setChecked(true); if (pick === correct) onCorrect?.(); }}>{t("ui.learn.check")}</button>
+    {checked && <p role="status" className={pick === correct ? "mf-ok" : "mf-bad"}>{pick === correct ? `${t("ui.learn.correct")} ${t(`concepts.${id}.explain`)}` : t("ui.learn.wrong")}</p>}</div>;
 }
 
 export function LearnLab() {
@@ -113,10 +113,10 @@ export function LearnLab() {
         )}
         {step === 0 && <p className="mf-body">{t(`concepts.${id}.simple`)}</p>}
         {step === 1 && <><Demo id={id} /><p className="mf-body">{t(`concepts.${id}.demo`)}</p></>}
-        {step === 2 && <><p className="mf-body">{t(`concepts.${id}.interactive`)}</p><Interactive id={id} /></>}
+        {step === 2 && <><p className="mf-body">{t(`concepts.${id}.interactive`)}</p><LessonInteractive id={id} /></>}
         {step === 3 && <p className="mf-body">{t(`concepts.${id}.science`)}</p>}
         {step === 4 && <><p className="mf-formula" dir="ltr">{FORMULA[id]}</p><p className="mf-body">{t(`concepts.${id}.formulaNote`)}</p></>}
-        {step === 5 && <Quiz id={id} />}
+        {step === 5 && <LessonQuiz id={id} />}
         {step === 6 && <ul className="mf-sources">{SRC[id].map((x) => <li key={x}>{x}</li>)}</ul>}
         <VoiceBar text={text} voice={voice} />
         <nav className="mf-step-nav"><button disabled={step === 0} onClick={() => setStep(step - 1)}><ArrowLeft size={16} />{t("ui.learn.prev")}</button>{step < 6 ? <button className="mf-primary" onClick={() => setStep(step + 1)}>{t("ui.learn.next")}<ArrowRight size={16} /></button> : <button className="mf-primary" onClick={() => s.set({ learn: "index" })}>{t("ui.learn.back")}</button>}</nav>

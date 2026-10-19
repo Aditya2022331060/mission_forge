@@ -30,6 +30,7 @@ import { Hud } from "./Hud";
 import { rt } from "./runtime";
 import { PlanetScene } from "./Presentation";
 import { ForgeCity } from "./city/ForgeCity";
+import { CityLearningActivity } from "./city/CityLearningActivity";
 import { CityOverlay } from "./city/CityOverlay";
 
 export function Game() {
@@ -46,8 +47,9 @@ export function Game() {
   const cockpit = cam === "cockpit" && (phase === "flight" || phase === "encounter");
 
   // Determine which 3D scene to render in WebGL
+  const learning = phase === "classroom" || phase === "training" || phase === "research";
   const sceneKey =
-    phase === "city"
+    phase === "city" || learning
       ? "city"
       : ["craft", "build", "check"].includes(phase)
       ? "hangar"
@@ -84,7 +86,7 @@ export function Game() {
     <div className="mf-game-stage">
       <div className="mf-game-viewport" data-phase={phase}>
         <div
-          className="absolute inset-0 touch-none select-none overflow-hidden bg-background"
+          className={`absolute inset-0 ${learning ? "touch-pan-y" : "touch-none"} select-none overflow-hidden bg-background`}
           onPointerDown={(e) => {
             if (cockpit && e.target instanceof HTMLCanvasElement) drag.current = { x: e.clientX, y: e.clientY };
           }}
@@ -118,12 +120,12 @@ export function Game() {
             gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
           >
             <Suspense fallback={null}>
-              <group key={sceneKey}>{scene}</group>
+              <group key={sceneKey}>{learning ? null : scene}</group>
             </Suspense>
           </Canvas>
 
           {/* Overlays according to game phase */}
-          {phase === "city" ? <CityOverlay /> : <Hud />}
+          {learning ? <CityLearningActivity key={phase} activity={phase} /> : phase === "city" ? <CityOverlay /> : <Hud />}
 
           <Ayesha />
           <LearnLab />

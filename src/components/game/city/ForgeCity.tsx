@@ -35,7 +35,7 @@ export function ForgeCity() {
         if (curZone) {
           if (curZone.targetPhase) {
             say(`Entering ${curZone.name}`, "ok");
-            go(curZone.targetPhase as never);
+            go(curZone.targetPhase);
           } else {
             say(`${curZone.name}: Advanced Research Campus Facility`, "info");
           }

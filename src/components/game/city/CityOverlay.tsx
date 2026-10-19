@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
 import { useMissionStore } from "../../../stores/mission-store";
 import { FORGE_CITY_DISTRICTS } from "./city-data";
 import { Button } from "../../ui/button";
 import { Compass, ChevronRight, Rocket, Building2 } from "lucide-react";
 
 export function CityOverlay() {
+  const { t } = useTranslation();
+  const completed = useMissionStore((s) => s.completedCityActivities);
   const activeZoneId = useMissionStore((s) => s.activeCityZone);
   const go = useMissionStore((s) => s.go);
   const activeZone = FORGE_CITY_DISTRICTS.find((z) => z.id === activeZoneId);
@@ -71,7 +74,7 @@ export function CityOverlay() {
             </div>
             {activeZone.targetPhase && (
               <Button
-                onClick={() => go(activeZone.targetPhase as never)}
+                onClick={() => activeZone.targetPhase && go(activeZone.targetPhase)}
                 className="bg-cyan-400 font-bold text-slate-950 hover:bg-cyan-300"
               >
                 Press <span className="mx-1 rounded bg-slate-950 px-1.5 py-0.5 text-xs text-cyan-300">E</span> Enter
@@ -87,7 +90,12 @@ export function CityOverlay() {
         )}
 
         {/* District Fast-Travel Strip */}
-        <div className="pointer-events-auto mt-4 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/85 p-1.5 backdrop-blur-md">
+        <div className="pointer-events-auto mt-4 flex max-w-full flex-wrap justify-center items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/85 p-1.5 backdrop-blur-md">
+          {(["classroom", "training", "research"] as const).map((activity) => (
+            <Button key={activity} variant="ghost" size="sm" onClick={() => go(activity)} aria-label={`${t(`cityLearning.${activity}.short`)} — ${t(`cityLearning.${activity}.title`)}${completed.includes(activity) ? ` · ${t("cityLearning.completed")}` : ""}`}>
+              {t(`cityLearning.${activity}.short`)}{completed.includes(activity) && <span aria-hidden="true">✓</span>}
+            </Button>
+          ))}
           <Button
             variant="ghost"
             size="sm"

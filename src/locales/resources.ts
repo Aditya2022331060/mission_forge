@@ -182,7 +182,53 @@ const experienceLocales = {
   ar: { ...experience, simulation: "محاكاة تعليمية", title: "قراراتك.\nعالم بعيد.", intro: "اختر عالماً. صمم مركبتك. أعد العلم إلى الأرض.", keepDesign: "الاحتفاظ بتصميمي", launch: "إطلاق", pause: "إيقاف الرحلة", resume: "استئناف الرحلة", report: "تقرير المهمة", retry: "إعادة التصميم والمحاولة", newDestination: "وجهة جديدة", camera: "التحكم بالكاميرا", days: "أيام" },
   fr: { ...experience, simulation: "SIMULATION ÉDUCATIVE", title: "Vos décisions.\nUn monde lointain.", intro: "Choisissez un monde. Concevez votre vaisseau. Rapportez la science.", keepDesign: "Garder ma configuration", launch: "Lancer", pause: "Suspendre le vol", resume: "Reprendre le vol", report: "RAPPORT DE MISSION", retry: "Reconcevoir et réessayer", newDestination: "Nouvelle destination", camera: "Commandes de caméra", days: "jours" },
 };
-export const resources = { en: { translation: { ...en, exp: experienceLocales.en } }, bn: { translation: { ...bn, exp: experienceLocales.bn } }, hi: { translation: { ...hi, exp: experienceLocales.hi } }, es: { translation: { ...es, exp: experienceLocales.es } }, ar: { translation: { ...ar, exp: experienceLocales.ar } }, fr: { translation: { ...fr, exp: experienceLocales.fr } } };
+// New city activities use i18next's English fallback until translated.
+const cityLearning = {
+  hub: "City learning activities", return: "Return to city", completed: "Completed", available: "Start activity",
+  complete: "Complete activity", saved: "Activity complete — your progress is saved on this device. Return to the city or practice again.",
+  requirements: "Finish the tasks below to complete this activity.", imageFallback: "Illustration unavailable. All learning tasks remain available.",
+  illustration: "SAMPLE · Project-supplied learning image, not live scientific data. Do not infer sizes or distances from the image.",
+  classroom: { short: "Academy", title: "Rocket Fundamentals", intro: "Identify the major rocket components, practice staging, and check your understanding of delta-v.", alt: "Rocket cutaway showing payload, propellant tanks, stages, engines and a simplified launch sequence" },
+  training: { short: "Training", title: "Mission Readiness", intro: "Review your current spacecraft without changing it. Learn what to check, what needs attention, and when to hold a launch.", alt: "Astronaut and support divers practicing with spacecraft hardware underwater" },
+  research: { short: "Research", title: "Solar System Explorer", intro: "Compare the five supported mission destinations. Separate published reference facts from calculations and the game's simplified mission model.", alt: "Montage of planets and Pluto; images and distances are not shown to a common scale" },
+  academy: {
+    components: "1. Explore the rocket components", componentsHint: "Select every component to discover its job.",
+    payload: "Payload", payloadText: "The payload is what the mission carries: science instruments, a probe or a crew capsule. More payload adds dry mass and reduces available delta-v for the same propellant.",
+    engine: "Engine", engineText: "The engine accelerates propellant out of a nozzle to produce thrust. Specific impulse describes propellant efficiency; high efficiency alone does not mean high thrust.",
+    tanks: "Propellant tanks", tanksText: "Tanks store propellant; chemical rockets usually carry both fuel and oxidizer. Propellant is used up, but empty tanks still add mass until discarded.",
+    stages: "Stages", stagesText: "Stages let a rocket discard spent engines and empty tanks. Later stages then accelerate less dead mass. Stage separation happens after a planned shutdown, not while every engine fires.",
+    staging: "2. Practice the staging sequence", stagingHint: "Select the next event in this simplified two-stage ascent. This is a teaching sequence, not flight guidance.",
+    ignite: "Ignite the first stage", cutoff: "Shut down the spent first stage", separate: "Separate the first stage", upper: "Ignite the upper stage",
+    stageWrong: "Not yet. Ignite the first stage, shut it down after its burn, separate it, then ignite the upper stage.",
+    stageRight: "Correct. Continue with the next event.", stageDone: "Staging complete. Discarding spent hardware reduces the mass carried by the next stage.",
+    equation: "3. Try the rocket equation", quiz: "4. Check your understanding", lesson: "Open the full rocket lesson", quizPassed: "Rocket quiz passed.",
+    progress: "Components explored: {{count}} / {{total}}", stagingProgress: "Staging events: {{count}} / {{total}}",
+  },
+  readiness: {
+    model: "SIMULATED · These checks use your current game design and simplified engineering model. Completion is training credit, not launch clearance.",
+    mission: "Current design: {{mission}}", reviewed: "Reviewed", review: "Review check", attention: "Needs attention", good: "Check satisfied",
+    mass: "Launch mass", massText: "Compare wet mass (spacecraft plus propellant) with the game's fixed SLS lift limit. An overweight craft needs a redesign.", massValue: "{{mass}} kg / {{limit}} kg limit",
+    fuel: "Propulsive reserve", fuelText: "Compare available delta-v with route demand. Keep a reserve for corrections; a narrow or negative margin needs attention.", fuelValue: "{{available}} / {{required}} km/s · {{margin}}% margin",
+    power: "Electrical power", powerText: "Check generation against consumption and leave a reserve. Sunlight weakens farther from the Sun; an RTG can help in the outer system.", powerValue: "{{generation}} / {{draw}} kW · {{margin}}% margin",
+    comms: "Communications", commsText: "A second antenna provides redundancy. Confirm a communications plan before departure; distance creates unavoidable radio delay.", commsValue: "{{count}} antenna(s)",
+    weather: "Space weather", weatherText: "This exercise has no verified live weather observation. Keep the weather station on HOLD and consult a reliable source before claiming GO.", weatherValue: "UNVERIFIED · No live data requested",
+    reviewedCount: "Checks reviewed: {{count}} / {{total}}", question: "Weather data is unavailable. What is the responsible readiness decision?",
+    assume: "Assume the weather is safe and declare GO", hold: "Hold and verify the missing weather information", check: "Check decision",
+    wrong: "Missing data does not mean safe conditions. Hold and verify the information; never invent a GO result.", correct: "Correct. HOLD communicates uncertainty while the team verifies conditions. Reviewing a warning does not fix the spacecraft.",
+  },
+  explorer: {
+    reference: "REFERENCE · Rounded values bundled from the project's NASA source registry; not live observations.",
+    calculated: "CALCULATED · Sunlight relative to Earth = 100 / r², using mean heliocentric distance in AU. The Moon uses Earth's solar distance. This ignores eclipses and panel efficiency.",
+    simulated: "SIMULATED · Route delta-v and transit time are simplified game estimates, not solved trajectories or flight guidance.",
+    diameter: "Diameter (km)", gravity: "Reference gravity (m/s²)", distance: "Mean distance from Sun (AU)", moonDistance: "Mean distance from Earth (AU)", period: "Orbital period (Earth days)", moonPeriod: "Orbit around Earth (days)",
+    gas: "For gas giants, reference gravity describes a nominal atmospheric level, not a solid landing surface.",
+    sunlight: "Sunlight relative to Earth", dv: "Base mission delta-v (km/s)", days: "Base transit estimate (days)",
+    source: "NASA planetary reference", ceresSource: "NASA Dawn / Ceres reference", mark: "Record this destination", recorded: "Destination recorded", progress: "Destinations recorded: {{count}} / {{total}}",
+    question: "For Jupiter, which statement should guide your mission design?", solid: "Land on a solid surface and use Earth-sized solar panels", gasAnswer: "Use an atmospheric probe or orbital mission; sunlight is much weaker than at Earth", check: "Check comparison",
+    wrong: "Jupiter is a gas giant without a solid landing surface. Compare its reference facts and calculated sunlight before trying again.", correct: "Correct. Destination conditions change the mission: Jupiter has no solid surface, and sunlight falls with the square of distance.",
+  },
+};
+export const resources = { en: { translation: { ...en, cityLearning, exp: experienceLocales.en } }, bn: { translation: { ...bn, exp: experienceLocales.bn } }, hi: { translation: { ...hi, exp: experienceLocales.hi } }, es: { translation: { ...es, exp: experienceLocales.es } }, ar: { translation: { ...ar, exp: experienceLocales.ar } }, fr: { translation: { ...fr, exp: experienceLocales.fr } } };
 export const LANGS = [
   { id: "en", label: "English", speech: "en-US" }, { id: "bn", label: "বাংলা", speech: "bn-BD" }, { id: "hi", label: "हिन्दी", speech: "hi-IN" },
   { id: "es", label: "Español", speech: "es-ES" }, { id: "ar", label: "العربية", speech: "ar-SA", rtl: true }, { id: "fr", label: "Français", speech: "fr-FR" },

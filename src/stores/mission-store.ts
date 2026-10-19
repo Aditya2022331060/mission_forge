@@ -4,6 +4,9 @@ import type { Design, EngineId, Instrument, MissionId, Outcome, RouteId } from "
 
 export type Phase =
   | "city"
+  | "classroom"
+  | "training"
+  | "research"
   | "menu"
   | "missions"
   | "brief"
@@ -28,6 +31,8 @@ export type Phase =
   | "landing"
   | "report";
 
+export type CityActivity = "classroom" | "training" | "research";
+
 export type { MissionId, RouteId };
 export type Lang = "en" | "bn" | "hi" | "es" | "ar" | "fr";
 
@@ -38,6 +43,8 @@ type State = Design & {
   referenceModel: boolean;
   activeNasaModel?: string | undefined;
   activeCityZone: string | null;
+  completedCityActivities: CityActivity[];
+  completeCityActivity: (activity: CityActivity) => void;
   outcome: Outcome | null;
   rescueKit: string[];
   rescued: boolean;
@@ -99,6 +106,12 @@ export const useMissionStore = create<State>()(
       referenceModel: false,
       activeNasaModel: undefined,
       activeCityZone: "space-center",
+      completedCityActivities: [],
+      completeCityActivity: (activity) => set((s) => ({
+        completedCityActivities: s.completedCityActivities.includes(activity)
+          ? s.completedCityActivities
+          : [...s.completedCityActivities, activity],
+      })),
       set: (p) => set(p as never),
       go: (phase) => set({ phase, referenceModel: false }),
       toggleInstrument: (i) =>
@@ -112,7 +125,7 @@ export const useMissionStore = create<State>()(
     {
       name: "mission-forge-v5",
       partialize: (s) => {
-        const { status, set: _a, go: _b, toggleInstrument: _c, say: _d, newRun: _e, ...rest } = s;
+        const { status, set: _a, go: _b, toggleInstrument: _c, say: _d, newRun: _e, completeCityActivity: _f, ...rest } = s;
         void status;
         return rest as never;
       },
