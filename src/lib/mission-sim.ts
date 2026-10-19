@@ -1,5 +1,6 @@
 // Deterministic engineering model. Physics: Tsiolkovsky rocket equation, inverse-square solar flux.
 // Component specs cite NASA sources (see nasa-data.ts). Values marked "game estimate" are simplifications.
+import { launchCapability, type LaunchVehicleId } from "./launch-vehicles";
 import { BODIES, SOURCES, type BodyId } from "./nasa-data";
 
 export type EngineId = "chemical" | "ion" | "nuclear";
@@ -16,7 +17,6 @@ export const WING_MASS = 190;
 export const WING_KW = 2.75; // kW per wing at 1 AU (Orion ESM: 4 wings ≈ 11 kW)
 export const RTG_KW = 0.11; // MMRTG ≈ 110 W, 45 kg
 export const RTG_MASS = 45;
-export const LAUNCH_LIMIT = 95000; // SLS Block 1: 95 t to low Earth orbit
 export const BASE_DRAW = 0.35; // kW avionics + life support baseline — game estimate
 
 export const ENGINES: Record<EngineId, { name: string; isp: number; mass: number; kw: number; thrust: string; note: string; source: string }> = {
@@ -48,6 +48,7 @@ export const ROUTES: Record<RouteId, { name: string; dv: number; time: number; h
 };
 
 export type Design = {
+  launchVehicle: LaunchVehicleId;
   mission: MissionId; route: RouteId; engine: EngineId; engines: number; tanks: number; wings: number;
   rtgs: number; antennas: number; shield: boolean; battery: boolean; instruments: Instrument[]; fuel: number;
 };
@@ -60,6 +61,7 @@ export function analyze(d: Design) {
   const wet = dry + propellant;
   const dv = (e.isp * G0 * Math.log(wet / dry)) / 1000;
   const required = m.dv * r.dv;
+  const launch = launchCapability(d.launchVehicle, required, MISSIONS.Moon.dv);
   const dvMargin = (dv - required) / required;
   const au = d.mission === "Moon" ? 1 : BODIES[m.body].au;
   const avg = (1 + au) / 2; // average heliocentric distance over transfer
@@ -72,7 +74,7 @@ export function analyze(d: Design) {
   const hazard = Math.min(0.95, m.hazard * r.hazard);
   const science = Math.round(Math.min(100, d.instruments.reduce((s, k) => s + INSTRUMENTS[k].science, 0) * r.science));
   const issues: { tone: "danger" | "warning"; text: string }[] = [];
-  if (wet > LAUNCH_LIMIT) issues.push({ tone: "danger", text: `Too heavy for SLS: ${fmt(wet)} kg > ${fmt(LAUNCH_LIMIT)} kg to orbit.` });
+  if (wet > launch.limitKg) issues.push({ tone: "danger", text: `SIMULATED ${launch.vehicle.name} mission envelope exceeded: ${fmt(wet)} kg > ${fmt(launch.limitKg)} kg. This is not a verified destination payload rating.` });
   if (dvMargin < 0) issues.push({ tone: "danger", text: `Not enough Δv: ${dv.toFixed(2)} of ${required.toFixed(2)} km/s needed.` });
   else if (dvMargin < 0.1) issues.push({ tone: "warning", text: "Δv margin under 10% — detours could strand you." });
   if (powerMargin < 0) issues.push({ tone: "danger", text: `Power deficit: ${generation} kW generated, ${draw} kW needed${au > 2 ? " — sunlight is weak out there" : ""}.` });
@@ -82,7 +84,7 @@ export function analyze(d: Design) {
   if (science === 0) issues.push({ tone: "warning", text: "No instruments — the mission returns no science." });
   const canLaunch = !issues.some((i) => i.tone === "danger");
   const readiness = Math.max(1, Math.min(100, Math.round(70 + Math.min(dvMargin, 0.25) * 80 + Math.min(powerMargin, 0.5) * 20 - issues.length * 8 - (canLaunch ? 0 : 30))));
-  return { dry, propellant, wet, dv, required, dvMargin, generation, draw, powerMargin, days, hazard, science, issues, canLaunch, readiness, solarFactor };
+  return { launch, dry, propellant, wet, dv, required, dvMargin, generation, draw, powerMargin, days, hazard, science, issues, canLaunch, readiness, solarFactor };
 }
 
 export type Outcome = { hull: number; comms: number; power: number; dvLeft: number; failed: boolean; causes: string[]; log: string; science: number; choice: EncounterChoice };

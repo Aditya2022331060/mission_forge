@@ -53,7 +53,7 @@ export function Game() {
       ? "city"
       : ["craft", "build", "check"].includes(phase)
       ? "hangar"
-      : ["menu", "missions", "brief", "overview", "objectives", "budget", "fuel", "power", "comms", "instruments"].includes(phase)
+      : ["menu", "missions", "vehicle", "brief", "overview", "objectives", "budget", "fuel", "power", "comms", "instruments"].includes(phase)
       ? "planet"
       : phase === "launch"
       ? "launch"

@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+import { LAUNCH_EVENTS, LAUNCH_VEHICLES } from "../../lib/launch-vehicles";
+import { LaunchVehicleImage } from "./LaunchVehicleSelector";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Environment, Lightformer, OrbitControls, Sparkles, Stars } from "@react-three/drei";
+import { Environment, Html, Lightformer, OrbitControls, Sparkles, Stars } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Nasa3DModel } from "./Nasa3DModel";
@@ -161,10 +164,12 @@ function Pad() {
 }
 
 export function LaunchScene() {
+  const { t: translate } = useTranslation();
   useTick(10);
   const reduced = useReducedMotion();
   const s = useMissionStore();
   const d = designOf(s);
+  const vehicle = LAUNCH_VEHICLES[s.launchVehicle];
   const stack = useRef<THREE.Group>(null);
   const orion = useRef<THREE.Group>(null);
   const { camera, scene } = useThree();
@@ -189,12 +194,9 @@ export function LaunchScene() {
       }
     };
 
-    if (t > 2) once("fuel", "Propellant loading complete — Saturn V pressurized");
-    if (t > LIFTOFF - 6.6) once("ign", "Main engine ignition sequence start (5× F-1)", "warn");
-    if (t > LIFTOFF) once("lift", "All engines running! Liftoff of Saturn V!", "ok");
-    if (t > SRB_SEP) once("srb", "First stage S-IC cutoff & staging", "ok");
-    if (t > CORE_SEP) once("core", "S-II stage separation & S-IVB ignition", "ok");
-    if (t > ORBIT) once("orb", "Orbit insertion achieved! Welcome to Low Earth Orbit", "ok");
+    for (const event of LAUNCH_EVENTS) {
+      if (t > event.at) once(event.key, translate(`launchVehicle.events.${st.launchVehicle}.${event.key}`), event.key === "ignition" ? "warn" : "ok");
+    }
 
     const inOrbit = t > ORBIT;
     const lt = Math.max(0, t - LIFTOFF);
@@ -247,7 +249,14 @@ export function LaunchScene() {
       {/* Authentic NASA Saturn V Rocket Ascent Stack */}
       <group ref={stack}>
         <group position-y={8}>
-          <Nasa3DModel modelUrl="/models/saturn-v.glb" targetSize={15} autoRotate={false} />
+          {vehicle.model ? <Nasa3DModel modelUrl={vehicle.model} targetSize={15} autoRotate={false} /> : rt.launchT < ORBIT && (
+            <Html center transform sprite distanceFactor={12}>
+              <figure className="mf-launch-photo" data-launch-visual={s.launchVehicle}>
+                <LaunchVehicleImage key={s.launchVehicle} vehicle={s.launchVehicle} />
+                <figcaption>{translate(`launchVehicle.visual.${s.launchVehicle}`)}</figcaption>
+              </figure>
+            </Html>
+          )}
         </group>
 
         {/* F-1 Engine Cluster Exhaust Plume */}

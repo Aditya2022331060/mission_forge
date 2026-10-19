@@ -1,17 +1,18 @@
+import { LAUNCH_EVENTS, LAUNCH_VEHICLES } from "../../lib/launch-vehicles";
 import { useTranslation } from "react-i18next";
 import { ReadinessPanel, MissionReport } from "./MissionPanels";
 import { GameScreens } from "./GameScreens";
 import { useMemo, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, Compass, Crosshair, Database, Eye, FastForward, Flame as FlameIcon, Info, Radio, RefreshCcw, Rocket, Satellite, ScanLine, Settings, ShieldCheck, Wrench, X, Zap } from "lucide-react";
 import { AU_KM, BODIES, LIGHT_KM_S, SOURCES, SPACECRAFT_OBJECTS, PLANET_ORDER } from "../../lib/nasa-data";
-import { analyze, CAUSE_TEXT, ENGINES, finalScore, fmt, G0, INSTRUMENTS, landingStages, LAUNCH_LIMIT, MISSIONS, RESCUE_KITS, rescuePlan, resolveEncounter, ROOT_CAUSE, ROUTES, RTG_KW, WING_KW, type EngineId, type Instrument, type MissionId, type RouteId, type EncounterChoice } from "../../lib/mission-sim";
+import { analyze, CAUSE_TEXT, ENGINES, finalScore, fmt, G0, INSTRUMENTS, landingStages, MISSIONS, RESCUE_KITS, rescuePlan, resolveEncounter, ROOT_CAUSE, ROUTES, RTG_KW, WING_KW, type EngineId, type Instrument, type MissionId, type RouteId, type EncounterChoice } from "../../lib/mission-sim";
 import { MissionBrief } from "./MissionBrief";
 import { GoPoll } from "./GoPoll";
 import { designOf, useMissionStore, type Phase } from "../../stores/mission-store";
 import { launchProfile } from "./Stages";
 import { pathAU, rt, useTick } from "./runtime";
 
-const PHASE_TITLE: Record<Phase, string> = { city: "Forge City Hub", classroom: "Rocket Fundamentals", training: "Mission Readiness", research: "Solar System Explorer", menu: "", missions: "Mission Selection", brief: "Mission Brief", route: "Route Planning", routePreview: "Route Preview", objectives: "Mission Objectives", budget: "Mission Budget", fuel: "Fuel Plan", power: "Power Plan", comms: "Communications", instruments: "Instruments", overview: "Mission Overview", craft: "Spacecraft Selection", build: "Spacecraft Builder", check: "Mission Check", launch: "Launch Sequence", flight: "Deep Space Flight", encounter: "Hazard Encounter", failure: "Failure & Black Box", rescue: "Rescue Mission", docking: "Rendezvous & Repair", landing: "Entry, Descent & Landing", report: "Mission Report" };
+const PHASE_TITLE: Record<Phase, string> = { city: "Forge City Hub", classroom: "Rocket Fundamentals", training: "Mission Readiness", research: "Solar System Explorer", menu: "", missions: "Mission Selection", vehicle: "Launch Vehicle", brief: "Mission Brief", route: "Route Planning", routePreview: "Route Preview", objectives: "Mission Objectives", budget: "Mission Budget", fuel: "Fuel Plan", power: "Power Plan", comms: "Communications", instruments: "Instruments", overview: "Mission Overview", craft: "Spacecraft Selection", build: "Spacecraft Builder", check: "Mission Check", launch: "Launch Sequence", flight: "Deep Space Flight", encounter: "Hazard Encounter", failure: "Failure & Black Box", rescue: "Rescue Mission", docking: "Rendezvous & Repair", landing: "Entry, Descent & Landing", report: "Mission Report" };
 
 function Panel({ children, className = "", title, icon }: { children: ReactNode; className?: string; title?: string; icon?: ReactNode }) {
   return <section className={`mf-panel pointer-events-auto p-3 sm:p-4 ${className}`}>{title && <h3 className="mb-3 flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.18em] text-cyan-soft">{icon}{title}</h3>}{children}</section>;
@@ -143,7 +144,7 @@ function Build() {
         {tab === "sci" && (Object.keys(INSTRUMENTS) as Instrument[]).map((k) => <Toggle key={k} label={INSTRUMENTS[k].name} sub={`${INSTRUMENTS[k].mass} kg · ${INSTRUMENTS[k].kw * 1000} W · +${INSTRUMENTS[k].science} science`} on={s.instruments.includes(k)} onClick={() => s.toggleInstrument(k)} />)}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-background/40 p-3">
-        <Row k="Launch mass" v={`${fmt(a.wet)} kg`} tone={a.wet > LAUNCH_LIMIT ? "text-danger" : ""} /><Row k="Dry mass" v={`${fmt(a.dry)} kg`} />
+        <Row k="Launch mass" v={`${fmt(a.wet)} kg`} tone={a.wet > a.launch.limitKg ? "text-danger" : ""} /><Row k="Dry mass" v={`${fmt(a.dry)} kg`} />
         <Row k="Δv" v={`${a.dv.toFixed(2)} / ${a.required.toFixed(2)}`} tone={a.dvMargin < 0 ? "text-danger" : a.dvMargin < 0.1 ? "text-warning" : "text-success"} /><Row k="Power" v={`${a.generation} / ${a.draw} kW`} tone={a.powerMargin < 0 ? "text-danger" : "text-success"} />
         <Row k="Flight time" v={`${fmt(a.days)} d`} /><Row k="Science" v={a.science} />
       </div>
@@ -159,7 +160,7 @@ function CheckS() {
     <Sheet className="mf-check-sheet">
       <div className="mb-4 flex items-center gap-4"><div className={`grid size-20 shrink-0 place-items-center rounded-full ${a.canLaunch ? "bg-success/15 text-success" : "bg-danger/15 text-danger"}`}>{a.canLaunch ? <Check size={38} /> : <X size={38} />}</div><div><div className={`text-xl font-bold tracking-widest ${a.canLaunch ? "text-success" : "text-danger"}`}>{a.canLaunch ? "MISSION READY" : "HIGH-RISK MISSION"}</div><div className="mf-mono text-sm text-muted-foreground">Readiness {a.readiness} / 100 · game estimate</div></div></div>
       <div className="space-y-3">
-        <Bar label="Launch mass" value={(a.wet / LAUNCH_LIMIT) * 100} tone={a.wet > LAUNCH_LIMIT ? "danger" : "success"} right={`${fmt(a.wet)} / ${fmt(LAUNCH_LIMIT)} kg`} />
+        <Bar label="Launch mass" value={(a.wet / a.launch.limitKg) * 100} tone={a.wet > a.launch.limitKg ? "danger" : "success"} right={`${fmt(a.wet)} / ${fmt(a.launch.limitKg)} kg`} />
         <Bar label="Δv margin" value={50 + a.dvMargin * 250} tone={a.dvMargin < 0 ? "danger" : a.dvMargin < 0.1 ? "warning" : "success"} right={`${Math.round(a.dvMargin * 100)}%`} />
         <Bar label="Power margin" value={50 + a.powerMargin * 100} tone={a.powerMargin < 0 ? "danger" : a.powerMargin < 0.15 ? "warning" : "success"} right={`${Math.round(a.powerMargin * 100)}%`} />
         <Bar label="Route hazard" value={a.hazard * 100} tone={a.hazard > 0.4 ? "danger" : a.hazard > 0.2 ? "warning" : "success"} />
@@ -172,8 +173,9 @@ function CheckS() {
 }
 
 function LaunchHud() {
+  const { t: translate } = useTranslation();
   useTick(8); const s = useMissionStore(); const t = rt.launchT; const p = launchProfile(t);
-  const steps: [number, string][] = [[0, "Systems go"], [3, "Fueling"], [LIFT - 6.6, "Engine start"], [LIFT, "Liftoff"], [18, "Booster separation"], [25, "Core separation"], [28, "Orbit insertion"], [29, "Solar array deploy"]];
+  const steps: [number, string][] = LAUNCH_EVENTS.map(event => [event.at, translate(`launchVehicle.events.${s.launchVehicle}.${event.key}`)]);
   const inOrbit = t > 33;
   const target = MISSIONS[s.mission].body;
   return (
@@ -182,7 +184,7 @@ function LaunchHud() {
       <Sheet>
         <div className="space-y-1.5">{steps.map(([at, l]) => <div key={l} className={`flex items-center gap-2 text-xs ${t >= at ? "text-foreground" : "text-muted-foreground/60"}`}><span className={`grid size-4 place-items-center rounded-full ${t >= at ? "bg-success/25 text-success" : "bg-secondary"}`}>{t >= at && <Check size={10} />}</span>{l}</div>)}</div>
         <div className="mt-3 grid grid-cols-2 gap-2"><Row k="Altitude" v={`${p.altKm.toFixed(1)} km`} /><Row k="Velocity" v={`${p.velKms.toFixed(2)} km/s`} /></div>
-        <Tip>{inOrbit ? "In orbit at ~7.8 km/s. The Orion service module's four solar wings unfold once the fairings are gone." : "SLS Block 1 produces 8.8 million pounds of thrust at liftoff — 4 RS-25 engines plus 2 solid rocket boosters."}</Tip>
+        <h2>{LAUNCH_VEHICLES[s.launchVehicle].name}</h2><Tip>{translate("launchVehicle.note")}</Tip><p className="mf-launch-visual-note">{translate(`launchVehicle.visual.${s.launchVehicle}`)}</p>
         <div className="mt-3 flex justify-end gap-2">
           {!inOrbit && <Btn tone="ghost" icon={<FastForward size={14} />} onClick={() => { rt.launchT = 28; }}>Skip to orbit</Btn>}
           {inOrbit && <Btn icon={<FlameIcon size={14} />} onClick={() => { rt.departDays = rt.days; rt.progress = 0; rt.warp = 1; s.say(target === "Moon" ? "Trans-lunar injection burn" : `Trans-${target} injection burn`, "warn"); s.go("flight"); }}>{target === "Moon" ? "Trans-lunar injection" : "Injection burn"}</Btn>}
@@ -359,7 +361,7 @@ export function Hud() {
   const { t } = useTranslation();
   const phase = useMissionStore((s) => s.phase), go = useMissionStore((s) => s.go);
   const screens: Partial<Record<Phase, ReactNode>> = { check: <ReadinessPanel />, launch: <LaunchHud />, flight: <Flight />, encounter: <Encounter />, failure: <Failure />, rescue: <Rescue />, docking: <Docking />, landing: <Landing />, report: <MissionReport /> };
-  if (["menu", "missions", "brief", "route", "routePreview", "objectives", "budget", "fuel", "power", "comms", "instruments", "overview", "craft", "build"].includes(phase)) return <GameScreens phase={phase} />;
+  if (["menu", "missions", "vehicle", "brief", "route", "routePreview", "objectives", "budget", "fuel", "power", "comms", "instruments", "overview", "craft", "build"].includes(phase)) return <GameScreens phase={phase} />;
   return (
     <div className="mf-operational pointer-events-none absolute inset-0 z-10 text-foreground">
       {(

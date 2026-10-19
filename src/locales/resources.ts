@@ -207,7 +207,7 @@ const cityLearning = {
   readiness: {
     model: "SIMULATED · These checks use your current game design and simplified engineering model. Completion is training credit, not launch clearance.",
     mission: "Current design: {{mission}}", reviewed: "Reviewed", review: "Review check", attention: "Needs attention", good: "Check satisfied",
-    mass: "Launch mass", massText: "Compare wet mass (spacecraft plus propellant) with the game's fixed SLS lift limit. An overweight craft needs a redesign.", massValue: "{{mass}} kg / {{limit}} kg limit",
+    mass: "Launch mass", massText: "Compare wet mass (spacecraft plus propellant) with the selected launcher's simulated destination-and-route envelope. This teaching limit is not verified launch capability. An overweight craft needs a redesign.", massValue: "{{mass}} kg / {{limit}} kg limit",
     fuel: "Propulsive reserve", fuelText: "Compare available delta-v with route demand. Keep a reserve for corrections; a narrow or negative margin needs attention.", fuelValue: "{{available}} / {{required}} km/s · {{margin}}% margin",
     power: "Electrical power", powerText: "Check generation against consumption and leave a reserve. Sunlight weakens farther from the Sun; an RTG can help in the outer system.", powerValue: "{{generation}} / {{draw}} kW · {{margin}}% margin",
     comms: "Communications", commsText: "A second antenna provides redundancy. Confirm a communications plan before departure; distance creates unavoidable radio delay.", commsValue: "{{count}} antenna(s)",
@@ -228,7 +228,28 @@ const cityLearning = {
     wrong: "Jupiter is a gas giant without a solid landing surface. Compare its reference facts and calculated sunlight before trying again.", correct: "Correct. Destination conditions change the mission: Jupiter has no solid surface, and sunlight falls with the square of distance.",
   },
 };
-export const resources = { en: { translation: { ...en, cityLearning, exp: experienceLocales.en } }, bn: { translation: { ...bn, exp: experienceLocales.bn } }, hi: { translation: { ...hi, exp: experienceLocales.hi } }, es: { translation: { ...es, exp: experienceLocales.es } }, ar: { translation: { ...ar, exp: experienceLocales.ar } }, fr: { translation: { ...fr, exp: experienceLocales.fr } } };
+const launchVehicle = {
+  title: "Launch vehicle", assumptions: "Model assumptions", choose: "Choose launch vehicle", selected: "Selected", source: "NASA reference", imageFallback: "Vehicle image unavailable",
+  descriptions: {
+    "saturn-v": "Apollo-era three-stage launcher: five F-1 engines on its first stage, followed by S-II and S-IVB stages.",
+    "sls-block-1": "Artemis launcher: four RS-25 core engines, two solid boosters, and an Interim Cryogenic Propulsion Stage (ICPS).",
+  },
+  alt: { "saturn-v": "Saturn V launch vehicle", "sls-block-1": "SLS Block 1 launch vehicle" },
+  reference: "Lunar-injection reference: approximately {{mass}} kg. Configuration-dependent benchmark, not a destination payload guarantee.",
+  model: "SIMULATED · {{vehicle}} / {{destination}}: {{mass}} kg spacecraft against a {{limit}} kg teaching envelope.",
+  assumption: "The model scales the lunar-injection reference by min(1, lunar baseline Δv / selected route Δv). This is a game rule, not a launch-performance solution. No LEO payload rating is used. The spacecraft still supplies its full LEO-to-target Δv budget; no launcher upper-stage Δv is credited.",
+  fits: "Within the simulated mass envelope. Check propulsion, power and other stations as well.",
+  exceeds: "Exceeds the simulated mass envelope. Reduce mass or change the vehicle, destination or route.",
+  poll: "SIMULATED · {{vehicle}}: {{mass}} / {{limit}} kg mission envelope",
+  note: "SIMULATED launch: compressed timeline and illustrative altitude/speed, not vehicle-specific flight dynamics.",
+  visual: { "saturn-v": "Saturn V 3D model · cinematic ascent", "sls-block-1": "SLS Block 1 · animated 2D reference image; no SLS 3D model is installed" },
+  debrief: "Launch vehicle and modeled capability", limit: "Simulated mission mass limit (kg)", mass: "Spacecraft wet mass (kg)",
+  events: {
+    "saturn-v": { fuel: "Saturn V propellant loading complete", ignition: "Saturn V first-stage ignition: five F-1 engines", liftoff: "Liftoff of Saturn V", separation: "Saturn V S-IC cutoff and separation", upper: "Saturn V S-II separation and S-IVB ignition", orbit: "Saturn V parking-orbit sequence complete", deploy: "Saturn V payload deployed in the game parking orbit" },
+    "sls-block-1": { fuel: "SLS Block 1 propellant loading complete", ignition: "SLS Block 1: four RS-25 engines start; solid boosters ignite at liftoff", liftoff: "Liftoff of SLS Block 1", separation: "SLS solid rocket booster separation", upper: "SLS core separation; ICPS upper-stage sequence", orbit: "SLS Block 1 parking-orbit sequence complete", deploy: "SLS Block 1 payload deployed in the game parking orbit" },
+  },
+};
+export const resources = { en: { translation: { ...en, cityLearning, launchVehicle, exp: experienceLocales.en } }, bn: { translation: { ...bn, exp: experienceLocales.bn } }, hi: { translation: { ...hi, exp: experienceLocales.hi } }, es: { translation: { ...es, exp: experienceLocales.es } }, ar: { translation: { ...ar, exp: experienceLocales.ar } }, fr: { translation: { ...fr, exp: experienceLocales.fr } } };
 export const LANGS = [
   { id: "en", label: "English", speech: "en-US" }, { id: "bn", label: "বাংলা", speech: "bn-BD" }, { id: "hi", label: "हिन्दी", speech: "hi-IN" },
   { id: "es", label: "Español", speech: "es-ES" }, { id: "ar", label: "العربية", speech: "ar-SA", rtl: true }, { id: "fr", label: "Français", speech: "fr-FR" },

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { getNasa } from "../../lib/nasa.functions";
-import { analyze, LAUNCH_LIMIT } from "../../lib/mission-sim";
+import { analyze } from "../../lib/mission-sim";
 import { designOf, useMissionStore } from "../../stores/mission-store";
 
 type V = "go" | "hold" | "nogo";
@@ -31,7 +31,7 @@ export function GoPoll({ onReady }: { onReady: (ok: boolean) => void }) {
   }, [call]);
   const strong = !!flare && flare.recent && /^[XM]/.test(flare.cls);
   const rows: { k: string; v: V; why: string }[] = [
-    { k: "booster", v: a.wet > LAUNCH_LIMIT ? "nogo" : "go", why: t("ui.poll.booster", { pct: Math.round((a.wet / LAUNCH_LIMIT) * 100) }) },
+    { k: "booster", v: a.wet > a.launch.limitKg ? "nogo" : "go", why: t("launchVehicle.poll", { vehicle: a.launch.vehicle.name, mass: a.wet.toLocaleString(), limit: a.launch.limitKg.toLocaleString() }) },
     { k: "prop", v: a.dvMargin < 0 ? "nogo" : a.dvMargin < 0.1 ? "hold" : "go", why: t("ui.poll.prop", { pct: Math.round(a.dvMargin * 100) }) },
     { k: "power", v: a.powerMargin < 0 ? "nogo" : a.powerMargin < 0.15 ? "hold" : "go", why: t("ui.poll.power", { gen: a.generation, draw: a.draw }) },
     { k: "comms", v: d.antennas < 2 ? "hold" : "go", why: t("ui.poll.comms", { n: d.antennas }) },
@@ -40,7 +40,7 @@ export function GoPoll({ onReady }: { onReady: (ok: boolean) => void }) {
     { k: "weather", v: !flare || flare.demo || strong ? "hold" : "go", why: !flare ? t("ui.poll.loading") : flare.demo ? t("exp.demoWeather") : `${flare.cls ? t("ui.poll.weather", { cls: flare.cls }) : t("ui.poll.quiet")} · ${t(flare.cached ? "exp.cachedWeather" : "exp.liveWeather")}` },
   ];
   const nogo = rows.some((r) => r.v === "nogo"), holds = rows.filter((r) => r.v === "hold").length;
-  const signature = JSON.stringify(rows.map(r => [r.k, r.v, r.why]));
+  const signature = JSON.stringify([s.launchVehicle, s.mission, s.route, rows.map(r => [r.k, r.v, r.why])]);
   const ack = accepted === signature;
   const ok = !!flare && (nogo || holds > 0 ? ack : true) && polled >= rows.length;
   useEffect(() => { onReady(ok); }, [ok, onReady]);

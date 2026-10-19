@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, ImageOff } from "lucide-react";
 import { Button } from "../../ui/button";
 import { LessonInteractive, LessonQuiz } from "../LearnLab";
 import { BODIES } from "../../../lib/nasa-data";
-import { analyze, LAUNCH_LIMIT, MISSIONS, type MissionId } from "../../../lib/mission-sim";
+import { analyze, MISSIONS, type MissionId } from "../../../lib/mission-sim";
 import { designOf, useMissionStore, type CityActivity } from "../../../stores/mission-store";
 
 const IMAGES: Record<CityActivity, string> = {
@@ -163,7 +163,7 @@ function Training() {
   const [decision, setDecision] = useState<"assume" | "hold" | null>(null);
   const [checked, setChecked] = useState(false);
   const good = {
-    mass: a.wet <= LAUNCH_LIMIT,
+    mass: a.wet <= a.launch.limitKg,
     fuel: a.dvMargin >= 0.1,
     power: a.powerMargin >= 0.15,
     comms: s.antennas >= 2,
@@ -172,7 +172,7 @@ function Training() {
   const values = {
     mass: t("cityLearning.readiness.massValue", {
       mass: Math.round(a.wet).toLocaleString(),
-      limit: LAUNCH_LIMIT.toLocaleString(),
+      limit: a.launch.limitKg.toLocaleString(),
     }),
     fuel: t("cityLearning.readiness.fuelValue", {
       available: a.dv.toFixed(2),

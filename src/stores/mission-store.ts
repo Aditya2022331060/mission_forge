@@ -1,3 +1,4 @@
+import { DEFAULT_LAUNCH_VEHICLE, normalizeLaunchVehicle } from "../lib/launch-vehicles";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Design, EngineId, Instrument, MissionId, Outcome, RouteId } from "../lib/mission-sim";
@@ -9,6 +10,7 @@ export type Phase =
   | "research"
   | "menu"
   | "missions"
+  | "vehicle"
   | "brief"
   | "route"
   | "routePreview"
@@ -70,6 +72,7 @@ type State = Design & {
 
 const run = { outcome: null, rescueKit: [], rescued: false, landing: 0, landingErrors: 0, dvSpent: 0 };
 const ship: Design = {
+  launchVehicle: DEFAULT_LAUNCH_VEHICLE,
   mission: "Mars",
   route: "safe",
   engine: "chemical" as EngineId,
@@ -132,6 +135,7 @@ export const useMissionStore = create<State>()(
       // Mid-animation phases resume at a safe checkpoint
       merge: (p, c) => {
         const s = { ...c, ...(p as object) } as State;
+        s.launchVehicle = normalizeLaunchVehicle(s.launchVehicle);
         if (["launch", "docking"].includes(s.phase)) s.phase = s.phase === "launch" ? "check" : "rescue";
         if (s.phase === "encounter" && !s.outcome) s.phase = "flight";
         return s;
@@ -141,6 +145,7 @@ export const useMissionStore = create<State>()(
 );
 
 export const designOf = (s: Design): Design => ({
+  launchVehicle: normalizeLaunchVehicle(s.launchVehicle),
   mission: s.mission,
   route: s.route,
   engine: s.engine,
