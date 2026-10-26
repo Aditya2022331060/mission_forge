@@ -3,8 +3,8 @@
 An interactive, scientifically transparent, browser-based space mission design and simulation game: build a spacecraft, plan orbital trajectories, launch in 3D, and simulate real astronautical physics.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/arefinkhansiam/mission-forges)
-[![Live Demo](https://img.shields.io/badge/live%20demo-mission--forges.vercel.app-0b3d91.svg)](https://mission-forges.vercel.app)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Aditya2022331060/mission_forge)
+[![🚀 Play Mission Forge](https://img.shields.io/badge/🚀%20Play%20Now-mission--forge--ochre.vercel.app-0b3d91.svg?style=for-the-badge)](https://mission-forge-ochre.vercel.app)
 [![NASA Space Apps](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue.svg)](https://www.spaceappschallenge.org/)
 
 ---
