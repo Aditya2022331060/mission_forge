@@ -2,13 +2,14 @@ import { useTranslation } from "react-i18next";
 import { useMissionStore } from "../../../stores/mission-store";
 import { FORGE_CITY_DISTRICTS } from "./city-data";
 import { Button } from "../../ui/button";
-import { Compass, ChevronRight, Rocket, Building2 } from "lucide-react";
+import { Compass, ChevronRight, Rocket, Building2, Home } from "lucide-react";
 
 export function CityOverlay() {
   const { t } = useTranslation();
   const completed = useMissionStore((s) => s.completedCityActivities);
   const activeZoneId = useMissionStore((s) => s.activeCityZone);
   const go = useMissionStore((s) => s.go);
+  const openVideo = useMissionStore((s) => s.openVideo);
   const activeZone = FORGE_CITY_DISTRICTS.find((z) => z.id === activeZoneId);
 
   return (
@@ -31,15 +32,22 @@ export function CityOverlay() {
           </p>
         </div>
 
-        {/* Quick Menu Toggle */}
-        <div className="pointer-events-auto flex items-center gap-2">
+        {/* Navigation & Video Actions */}
+        <div className="pointer-events-auto flex items-center gap-2 flex-wrap justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={() => go("menu")}
-            className="border-slate-700 bg-slate-900/80 text-xs text-slate-200 hover:text-white"
+            className="border-cyan-500/50 bg-slate-900/90 text-xs font-bold text-cyan-300 hover:bg-cyan-950 hover:text-white shadow-md shadow-cyan-950/40"
           >
-            Flight Plan Menu
+            <Home className="mr-1.5 size-3.5" /> Back to Home
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => openVideo("v01")}
+            className="bg-amber-400 font-extrabold text-slate-950 hover:bg-amber-300 text-xs shadow-md shadow-amber-400/20"
+          >
+            🎬 Cadet Cinema (3 Videos)
           </Button>
           <Button
             size="sm"
@@ -91,11 +99,29 @@ export function CityOverlay() {
 
         {/* District Fast-Travel Strip */}
         <div className="pointer-events-auto mt-4 flex max-w-full flex-wrap justify-center items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/85 p-1.5 backdrop-blur-md">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => go("menu")}
+            className="flex items-center gap-1.5 text-xs text-cyan-300 hover:text-white"
+          >
+            <Home className="size-3.5" /> Home
+          </Button>
+          <div className="h-4 w-px bg-slate-800" />
           {(["classroom", "training", "research"] as const).map((activity) => (
             <Button key={activity} variant="ghost" size="sm" onClick={() => go(activity)} aria-label={`${t(`cityLearning.${activity}.short`)} — ${t(`cityLearning.${activity}.title`)}${completed.includes(activity) ? ` · ${t("cityLearning.completed")}` : ""}`}>
               {t(`cityLearning.${activity}.short`)}{completed.includes(activity) && <span aria-hidden="true">✓</span>}
             </Button>
           ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openVideo("v01")}
+            className="flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200"
+          >
+            🎬 Cadet Videos
+          </Button>
+          <div className="h-4 w-px bg-slate-800" />
           <Button
             variant="ghost"
             size="sm"

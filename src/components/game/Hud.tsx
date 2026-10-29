@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ReadinessPanel, MissionReport } from "./MissionPanels";
 import { GameScreens } from "./GameScreens";
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, Compass, Crosshair, Database, Eye, FastForward, Flame as FlameIcon, Info, Radio, RefreshCcw, Rocket, Satellite, ScanLine, Settings, ShieldCheck, Wrench, X, Zap } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Compass, Crosshair, Database, Eye, FastForward, Flame as FlameIcon, Home, Info, Radio, RefreshCcw, Rocket, Satellite, ScanLine, Settings, ShieldCheck, Sparkles, Wrench, X, Zap } from "lucide-react";
 import { AU_KM, BODIES, LIGHT_KM_S, SOURCES, SPACECRAFT_OBJECTS, PLANET_ORDER } from "../../lib/nasa-data";
 import { analyze, CAUSE_TEXT, ENGINES, finalScore, fmt, G0, INSTRUMENTS, landingStages, MISSIONS, RESCUE_KITS, rescuePlan, resolveEncounter, ROOT_CAUSE, ROUTES, RTG_KW, WING_KW, type EngineId, type Instrument, type MissionId, type RouteId, type EncounterChoice } from "../../lib/mission-sim";
 import { MissionBrief } from "./MissionBrief";
@@ -70,6 +70,7 @@ function Menu() {
       <div className="animate-fade-in"><Logo big /></div>
       <div className="pointer-events-auto flex max-w-xs flex-col gap-2">
         <Btn icon={<Rocket size={15} />} onClick={() => { s.newRun("missions"); s.say("New mission — choose a destination"); }}>Start mission</Btn>
+        <Btn icon={<Sparkles size={15} />} onClick={() => s.openVideo("v01")}>🎬 Cadet Videos & Quizzes</Btn>
         {s.attempts > 0 && <Btn tone="ghost" icon={<Wrench size={15} />} onClick={() => s.go("build")}>Continue design</Btn>}
         <Btn tone="ghost" icon={<Database size={15} />} onClick={() => setModal("data")}>NASA data sources</Btn>
         <Btn tone="ghost" icon={<Settings size={15} />} onClick={() => setModal("settings")}>Settings</Btn>
@@ -81,7 +82,7 @@ function Menu() {
       </Modal>}
       {modal === "settings" && <Modal title="Settings" onClose={() => setModal(null)}>
         <div className="space-y-2"><Toggle label="High graphics quality" sub="Sharper rendering; turn off on slower phones" on={s.quality === "high"} onClick={() => s.set({ quality: s.quality === "high" ? "low" : "high" })} />
-          <Btn tone="danger" className="mt-3" icon={<RefreshCcw size={14} />} onClick={() => { localStorage.removeItem("mission-forge-v3"); location.reload(); }}>Reset all progress</Btn></div>
+          <Btn tone="danger" className="mt-3" icon={<RefreshCcw size={14} />} onClick={() => s.resetAllSessions()}>Reset all sessions & start fresh</Btn></div>
       </Modal>}
     </div>
   );
@@ -366,7 +367,17 @@ export function Hud() {
     <div className="mf-operational pointer-events-none absolute inset-0 z-10 text-foreground">
       {(
         <div className="absolute inset-x-2 top-2 flex items-start justify-between gap-2 sm:inset-x-4 sm:top-4">
-          <div className="pointer-events-auto flex items-center gap-3"><button aria-label="Main menu" onClick={() => go("menu")}><Logo /></button><span className="hidden text-[13px] font-bold uppercase tracking-[0.2em] text-cyan-soft sm:inline">{t(`exp.${phase === "launch" ? "launchPhase" : phase}`)}</span></div>
+          <div className="pointer-events-auto flex items-center gap-2 sm:gap-3">
+            <button aria-label="Main menu" onClick={() => go("menu")}><Logo /></button>
+            <button
+              onClick={() => go("menu")}
+              aria-label="Back to Home"
+              className="flex items-center gap-1 rounded-md border border-slate-700/60 bg-slate-900/80 px-2 py-1 text-xs font-bold text-cyan-300 transition hover:bg-slate-800 hover:text-white"
+            >
+              <Home size={13} /> <span className="hidden sm:inline">Home</span>
+            </button>
+            <span className="hidden text-[13px] font-bold uppercase tracking-[0.2em] text-cyan-soft sm:inline">{t(`exp.${phase === "launch" ? "launchPhase" : phase}`)}</span>
+          </div>
           <StatusFeed />
         </div>
       )}

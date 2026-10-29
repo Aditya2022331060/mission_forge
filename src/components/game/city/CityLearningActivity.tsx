@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, ImageOff } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Home, ImageOff } from "lucide-react";
 import { Button } from "../../ui/button";
 import { LessonInteractive, LessonQuiz } from "../LearnLab";
 import { BODIES } from "../../../lib/nasa-data";
@@ -74,9 +74,32 @@ function Academy() {
   const [stage, setStage] = useState(0);
   const [stageFeedback, setStageFeedback] = useState("");
   const [quizPassed, setQuizPassed] = useState(false);
+  const openVideo = useMissionStore((s) => s.openVideo);
   const openLesson = useMissionStore((s) => s.set);
   return (
     <>
+      <section className="mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/30 to-slate-900/60 p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+              Interactive Video Classroom · Ages 8–14
+            </span>
+            <h3 className="text-sm font-bold text-slate-100">
+              🎬 Cadet Video Academy (3 Core Lessons & Badges)
+            </h3>
+            <p className="text-xs text-slate-300">
+              Watch "Why Do We Explore Space?", "Where Space Begins", and "Earth's Address in the Universe" with interactive quizzes!
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => openVideo("v01")}
+            className="bg-amber-400 font-bold text-slate-950 hover:bg-amber-300 text-xs shadow-md shadow-amber-400/20"
+          >
+            Open Video Cinema
+          </Button>
+        </div>
+      </section>
       <section>
         <h2>{t("cityLearning.academy.components")}</h2>
         <p>{t("cityLearning.academy.componentsHint")}</p>
@@ -388,10 +411,15 @@ export function CityLearningActivity({ activity }: { activity: CityActivity }) {
             {t(`cityLearning.${activity}.title`)}
           </h1>
         </div>
-        <Button variant="secondary" onClick={() => go("city")}>
-          <ArrowLeft aria-hidden="true" />
-          {t("cityLearning.return")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={() => go("menu")} className="text-cyan-300 hover:text-white">
+            <Home className="mr-1.5 size-4" /> Home
+          </Button>
+          <Button variant="secondary" onClick={() => go("city")}>
+            <ArrowLeft aria-hidden="true" />
+            {t("cityLearning.return")}
+          </Button>
+        </div>
       </header>
       <div className="mf-city-learning-grid">
         <aside>

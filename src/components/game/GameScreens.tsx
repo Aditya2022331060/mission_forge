@@ -2,7 +2,7 @@ import { LaunchVehiclePreviewPanel, useLaunchPreviewMode } from "./LaunchVehicle
 import { LaunchVehicleSelector, LaunchCapabilitySummary } from "./LaunchVehicleSelector";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowRight, BookOpen, Check, Compass, Menu, Rocket, Settings2, UserRound, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Compass, Home, Menu, Play, Rocket, Settings2, Sparkles, UserRound, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { BODIES, SOURCES } from "../../lib/nasa-data";
 import { analyze, ENGINES, fmt, INSTRUMENTS, MISSIONS, ROUTES, type EngineId, type Instrument, type MissionId, type RouteId } from "../../lib/mission-sim";
@@ -25,10 +25,25 @@ function Frame({ phase, children }: { phase: Phase; children: ReactNode }) {
     <header className="gm-header">
       <Button variant="ghost" className="gm-mark" onClick={() => s.go("menu")} aria-label={t("ui.game.home")}>◈ <strong>MISSION <span>FORGE</span></strong></Button>
       {current >= 0 && <div className="gm-flow-progress"><span>{String(current + 1).padStart(2, "0")} / {steps.length}</span><div><i style={{ width: `${(current + 1) / steps.length * 100}%` }} /></div><b>{phase === "vehicle" ? t("launchVehicle.title") : t(`ui.flow.${nameKey[phase]}`)}</b></div>}
-      <div className="gm-header-tools"><span className="gm-signal">{t("exp.simulation")}</span><Button variant="ghost" size="icon" onClick={() => setMentor(true)} aria-label={t("ui.ayesha.name")} title={t("ui.ayesha.name")}><UserRound size={19} /></Button><Button variant="ghost" size="icon" onClick={() => setMenu(!menu)} aria-label={t("ui.game.options")}><Menu size={19} /></Button></div>
+      <div className="gm-header-tools">
+        {phase !== "menu" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => s.go("menu")}
+            aria-label={t("ui.game.home")}
+            className="flex items-center gap-1 text-xs text-cyan-300 hover:text-white"
+          >
+            <Home size={15} /> <span className="hidden sm:inline">{t("ui.game.home")}</span>
+          </Button>
+        )}
+        <span className="gm-signal">{t("exp.simulation")}</span>
+        <Button variant="ghost" size="icon" onClick={() => setMentor(true)} aria-label={t("ui.ayesha.name")} title={t("ui.ayesha.name")}><UserRound size={19} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => setMenu(!menu)} aria-label={t("ui.game.options")}><Menu size={19} /></Button>
+      </div>
     </header>
     {children}
-    {menu && <div className="gm-backdrop" onClick={() => setMenu(false)}><section className="gm-dialog" onClick={e => e.stopPropagation()}><Button variant="ghost" size="icon" className="gm-close" aria-label={t("ui.learn.close")} onClick={() => setMenu(false)}><X /></Button><h2>{t("ui.game.options")}</h2><label>{t("ui.voice.language")}<select value={s.lang} onChange={e => s.set({ lang: e.target.value as typeof s.lang })}>{LANGS.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}</select></label><Button variant="secondary" onClick={() => s.set({ quality: s.quality === "high" ? "low" : "high" })}><Settings2 /> {t("ui.game.graphics")}: {s.quality}</Button><Button variant="secondary" onClick={() => { s.set({ learn: "index" }); setMenu(false); }}><BookOpen /> {t("ui.learn.title")}</Button><p>NASA NSSDCA · NASA/JPL Horizons · NASA Image and Video Library</p></section></div>}
+    {menu && <div className="gm-backdrop" onClick={() => setMenu(false)}><section className="gm-dialog" onClick={e => e.stopPropagation()}><Button variant="ghost" size="icon" className="gm-close" aria-label={t("ui.learn.close")} onClick={() => setMenu(false)}><X /></Button><h2>{t("ui.game.options")}</h2><Button variant="secondary" onClick={() => { s.go("menu"); setMenu(false); }}><Home size={16} /> 🏠 {t("ui.game.home")}</Button><label>{t("ui.voice.language")}<select value={s.lang} onChange={e => s.set({ lang: e.target.value as typeof s.lang })}>{LANGS.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}</select></label><Button variant="secondary" onClick={() => s.set({ quality: s.quality === "high" ? "low" : "high" })}><Settings2 /> {t("ui.game.graphics")}: {s.quality}</Button><Button variant="secondary" onClick={() => { s.openVideo("v01"); setMenu(false); }}><Sparkles /> 🎬 {t("ui.nav.learn")} · Video Academy</Button><Button variant="secondary" onClick={() => { s.set({ learn: "index" }); setMenu(false); }}><BookOpen /> {t("ui.learn.title")}</Button><p>NASA NSSDCA · NASA/JPL Horizons · NASA Image and Video Library</p></section></div>}
     {mentor && <Mentor onClose={() => setMentor(false)} />}
   </div>;
 }
@@ -52,15 +67,33 @@ function Start() {
     <p className="gm-kicker">{t("exp.eyebrow")}</p><h1>{t("exp.title").split("\n").map((line, i) => <span key={line}>{i > 0 && <br />}{line}</span>)}</h1>
     <p className="mf-home-intro">{t("exp.intro")}</p>
     <div className="gm-actions">
-      <Button size="lg" onClick={() => s.go("city")} className="bg-cyan-500 font-bold text-slate-950 hover:bg-cyan-400">
-        <Rocket /> Explore Forge City (3D Hub) <ArrowRight />
-      </Button>
-      <Button size="lg" variant="secondary" onClick={() => s.newRun("missions")}>
-        Direct Flight Plan <ArrowRight />
-      </Button>
-      <Button variant="secondary" onClick={() => s.set({ learn: "index" })}>
-        <BookOpen /> {t("ui.nav.learn")}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Button
+          size="lg"
+          onClick={() => {
+            if (!s.hasSeenIntroVideo) {
+              s.openCadetIntro();
+            } else {
+              s.go("city");
+            }
+          }}
+          className="bg-cyan-500 font-bold text-slate-950 hover:bg-cyan-400"
+        >
+          <Rocket /> Explore Forge City (3D Hub) <ArrowRight />
+        </Button>
+        <Button size="lg" variant="secondary" onClick={() => s.newRun("missions")}>
+          Direct Flight Plan <ArrowRight />
+        </Button>
+      </div>
+      <div>
+        <Button
+          variant="secondary"
+          onClick={() => s.openVideo("v01")}
+          className="border-amber-400/40 bg-slate-900/80 hover:bg-amber-950/40 text-amber-300 hover:text-amber-200"
+        >
+          <Sparkles className="size-4" /> 🎬 {t("ui.nav.learn")} · Video Academy
+        </Button>
+      </div>
     </div>
     {s.attempts > 0 && <Button className="mf-resume" variant="ghost" onClick={() => s.go("build")}>{t("ui.home.continue")}<ArrowRight /></Button>}
   </div><div className="mf-home-coordinate"><span>{t("exp.destination")}</span><strong>{t("ui.home.title2")}</strong><small>{t("ui.home.tagline")}</small></div>

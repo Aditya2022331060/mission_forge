@@ -45,6 +45,55 @@ export function Surface({ body, radius = 1 }: { body: BodyId; radius?: number })
   </>;
 }
 
+function SaturnRings({ inner = 1.65, outer = 3.35 }: { inner?: number; outer?: number }) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  useEffect(() => {
+    let active = true;
+    const loader = new THREE.TextureLoader();
+    loader.load("/textures/nasa-3d/saturn-rings.png", (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      if (active) setTexture(tex);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const geometry = useMemo(() => {
+    const geo = new THREE.RingGeometry(inner, outer, 128, 4);
+    const pos = geo.getAttribute("position");
+    const uv = geo.getAttribute("uv");
+    if (pos && uv) {
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const r = Math.sqrt(x * x + y * y);
+        const u = (r - inner) / (outer - inner);
+        uv.setXY(i, Math.max(0, Math.min(1, u)), 0.5);
+      }
+      uv.needsUpdate = true;
+    }
+    return geo;
+  }, [inner, outer]);
+
+  return (
+    <mesh geometry={geometry} rotation-x={1.16} rotation-y={0.05}>
+      <meshStandardMaterial
+        key={texture?.uuid ?? "fallback-saturn-ring"}
+        map={texture}
+        emissiveMap={texture}
+        emissive="#f7eed9"
+        emissiveIntensity={0.88}
+        color="#ffffff"
+        transparent
+        opacity={0.96}
+        side={THREE.DoubleSide}
+        roughness={0.45}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 export function PlanetScene() {
   const phase = useMissionStore(s => s.phase), mission = useMissionStore(s => s.mission);
   const quality = useMissionStore(s => s.quality);
@@ -54,16 +103,22 @@ export function PlanetScene() {
   const body = phase === "menu" ? "Earth" : mission;
   useEffect(() => { camera.position.set(0, 0, 7); camera.lookAt(0, 0, 0); }, [camera]);
   useFrame((_, dt) => { if (planet.current && !reduced) planet.current.rotation.y += Math.min(dt, 0.05) * 0.025; });
-  const x = viewport.width * 0.22;
+  const isMenu = phase === "menu";
+  const bodyRadius = body === "Saturn" ? 0.98 : isMenu ? 2.10 : 2.18;
+  // Position Earth/planets so they fit gracefully within the stage without edge clipping or text overlap
+  const x = isMenu ? viewport.width * 0.13 : body === "Saturn" ? viewport.width * 0.16 : viewport.width * 0.20;
+  const y = isMenu ? 0.08 : 0.05;
   return <>
     <color attach="background" args={["#05090f"]} />
-    <ambientLight intensity={0.16} color="#a4bfd9" />
-    <directionalLight position={[-3, 4, 6]} intensity={2.5} color="#fff4e4" />
+    <ambientLight intensity={0.28} color="#9cb6d0" />
+    <directionalLight position={[-3, 4, 6]} intensity={2.6} color="#fff4e4" />
     <Stars radius={70} depth={30} count={quality === "high" ? 1200 : 400} factor={2} fade speed={0} />
-    <group position={[x, 0.05, 0]} rotation-z={0.18}>
-      <group ref={planet} rotation-y={body === "Earth" ? 2.8 : 0.6}><Surface key={body} body={body} radius={2.28} /></group>
-      {body === "Earth" && <mesh scale={1.012}><sphereGeometry args={[2.28, 48, 24]} /><meshBasicMaterial color="#8ac7ef" transparent opacity={0.13} side={THREE.BackSide} /></mesh>}
-      {body === "Saturn" && <mesh rotation-x={1.14}><ringGeometry args={[2.7, 3.8, 96]} /><meshStandardMaterial color="#b8ac8c" transparent opacity={0.7} side={THREE.DoubleSide} /></mesh>}
+    <group position={[x, y, 0]} rotation-z={0.18}>
+      <group ref={planet} rotation-y={body === "Earth" ? 2.8 : body === "Moon" ? 1.4 : 0.6}>
+        <Surface key={body} body={body} radius={bodyRadius} />
+      </group>
+      {body === "Earth" && <mesh scale={1.012}><sphereGeometry args={[bodyRadius, 48, 24]} /><meshBasicMaterial color="#8ac7ef" transparent opacity={0.13} side={THREE.BackSide} /></mesh>}
+      {body === "Saturn" && <SaturnRings inner={1.16} outer={2.22} />}
     </group>
   </>;
 }

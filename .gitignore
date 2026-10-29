@@ -11,10 +11,10 @@ node_modules
 dist
 dist-ssr
 .output
-.vinxi
 .tanstack/**
 .nitro
 *.local
+Vedios for space game/
 
 # Wrangler / Cloudflare / Vercel
 .wrangler/
@@ -40,3 +40,4 @@ dist-ssr
 *.pem
 *.key
 .env
+.vercel

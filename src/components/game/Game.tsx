@@ -33,6 +33,8 @@ import { PlanetScene } from "./Presentation";
 import { ForgeCity } from "./city/ForgeCity";
 import { CityLearningActivity } from "./city/CityLearningActivity";
 import { CityOverlay } from "./city/CityOverlay";
+import { CadetVideoAcademy } from "./video/CadetVideoAcademy";
+import { FirstTimeCadetIntro } from "./video/FirstTimeCadetIntro";
 
 export function Game() {
   return <LaunchPreviewProvider><GameContent /></LaunchPreviewProvider>;
@@ -141,6 +143,8 @@ function GameContent() {
 
           <Ayesha />
           <LearnLab />
+          <FirstTimeCadetIntro />
+          <CadetVideoAcademy />
         </div>
       </div>
     </div>

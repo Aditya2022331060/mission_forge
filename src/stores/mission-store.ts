@@ -33,10 +33,18 @@ export type Phase =
   | "landing"
   | "report";
 
+import { CURRENT_STORAGE_KEY, resetAllSessionsAndRestart } from "../lib/session-manager";
+
 export type CityActivity = "classroom" | "training" | "research";
 
 export type { MissionId, RouteId };
 export type Lang = "en" | "bn" | "hi" | "es" | "ar" | "fr";
+
+export interface VideoModalState {
+  isOpen: boolean;
+  videoId: "v01" | "v02" | "v03";
+  initialTab: "video" | "quiz";
+}
 
 type State = Design & {
   phase: Phase;
@@ -47,6 +55,20 @@ type State = Design & {
   activeCityZone: string | null;
   completedCityActivities: CityActivity[];
   completeCityActivity: (activity: CityActivity) => void;
+  // Video and Quiz System for Cadets (Ages 8-14)
+  hasSeenIntroVideo: boolean;
+  videoModal: VideoModalState | null;
+  showCadetIntroModal: boolean;
+  openCadetIntro: () => void;
+  closeCadetIntro: () => void;
+  watchedVideos: string[];
+  quizScores: Record<string, { passed: boolean; score: number; total: number }>;
+  openVideo: (videoId: "v01" | "v02" | "v03", initialTab?: "video" | "quiz") => void;
+  closeVideo: () => void;
+  markVideoWatched: (videoId: string) => void;
+  recordQuizResult: (videoId: string, score: number, total: number) => void;
+  setHasSeenIntroVideo: (seen: boolean) => void;
+  resetAllSessions: () => void;
   outcome: Outcome | null;
   rescueKit: string[];
   rescued: boolean;
@@ -93,7 +115,7 @@ export const useMissionStore = create<State>()(
     (set) => ({
       ...ship,
       ...run,
-      phase: "city", // Starts in the 3D Forge City hub
+      phase: "menu", // Starts on the cinematic Home Landing Screen (Rotating Earth)
       lang: "en",
       muted: false,
       captions: true,
@@ -110,11 +132,46 @@ export const useMissionStore = create<State>()(
       activeNasaModel: undefined,
       activeCityZone: "space-center",
       completedCityActivities: [],
-      completeCityActivity: (activity) => set((s) => ({
-        completedCityActivities: s.completedCityActivities.includes(activity)
-          ? s.completedCityActivities
-          : [...s.completedCityActivities, activity],
-      })),
+      completeCityActivity: (activity) =>
+        set((s) => ({
+          completedCityActivities: s.completedCityActivities.includes(activity)
+            ? s.completedCityActivities
+            : [...s.completedCityActivities, activity],
+        })),
+      // Video Academy state
+      hasSeenIntroVideo: false,
+      videoModal: null,
+      showCadetIntroModal: false,
+      openCadetIntro: () => set({ showCadetIntroModal: true }),
+      closeCadetIntro: () => set({ showCadetIntroModal: false }),
+      watchedVideos: [],
+      quizScores: {},
+      openVideo: (videoId, initialTab = "video") =>
+        set({ videoModal: { isOpen: true, videoId, initialTab } }),
+      closeVideo: () => set({ videoModal: null }),
+      markVideoWatched: (videoId) =>
+        set((s) => ({
+          watchedVideos: s.watchedVideos.includes(videoId)
+            ? s.watchedVideos
+            : [...s.watchedVideos, videoId],
+          hasSeenIntroVideo: videoId === "v01" ? true : s.hasSeenIntroVideo,
+        })),
+      recordQuizResult: (videoId, score, total) =>
+        set((s) => ({
+          quizScores: {
+            ...s.quizScores,
+            [videoId]: {
+              passed: score >= 2,
+              score,
+              total,
+            },
+          },
+          hasSeenIntroVideo: videoId === "v01" ? true : s.hasSeenIntroVideo,
+        })),
+      setHasSeenIntroVideo: (seen) => set({ hasSeenIntroVideo: seen }),
+      resetAllSessions: () => {
+        resetAllSessionsAndRestart();
+      },
       set: (p) => set(p as never),
       go: (phase) => set({ phase, referenceModel: false }),
       toggleInstrument: (i) =>
@@ -126,10 +183,31 @@ export const useMissionStore = create<State>()(
       newRun: (phase = "build") => set((s) => ({ ...run, phase, attempts: s.attempts + 1, status: [] })),
     }),
     {
-      name: "mission-forge-v5",
+      name: CURRENT_STORAGE_KEY,
       partialize: (s) => {
-        const { status, set: _a, go: _b, toggleInstrument: _c, say: _d, newRun: _e, completeCityActivity: _f, ...rest } = s;
+        const {
+          status,
+          videoModal,
+          showCadetIntroModal,
+          set: _a,
+          go: _b,
+          toggleInstrument: _c,
+          say: _d,
+          newRun: _e,
+          completeCityActivity: _f,
+          openVideo: _g,
+          closeVideo: _h,
+          markVideoWatched: _i,
+          recordQuizResult: _j,
+          setHasSeenIntroVideo: _k,
+          resetAllSessions: _l,
+          openCadetIntro: _m,
+          closeCadetIntro: _n,
+          ...rest
+        } = s;
         void status;
+        void videoModal;
+        void showCadetIntroModal;
         return rest as never;
       },
       // Mid-animation phases resume at a safe checkpoint
